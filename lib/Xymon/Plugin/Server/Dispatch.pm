@@ -15,13 +15,21 @@ Xymon::Plugin::Server::Dispatch - Xymon plugin dispatcher
     use Xymon::Plugin::Server::Dispatch;
     use YourMonitor;
 
-    my $dispatch = Xymon::Plugin::Server::Dispatch
-                   ->new('test' => 'YourMonitor');
-    $dispatch->run;
+    # dispatch to class
+    my $dispatch1 = Xymon::Plugin::Server::Dispatch
+                    ->new('test' => 'YourMonitor');
+    $dispatch1->run;
 
-    # You can this script into
-    #  tasks.cfg (Xymon 4.3)
-    #  hobbitlaunch.cfg (Xymon 4.2)
+    # dispatch to method
+    my $dispatch2 = Xymon::Plugin::Server::Dispatch
+                    ->new('test' => new YourMonitor());
+    $dispatch2->run;
+
+    # dispatch to CODEREF
+    my $dispatch3 = Xymon::Plugin::Server::Dispatch
+                    ->new('test' => sub { ... });
+    $dispatch3->run;
+
 
 =cut;
 
@@ -67,8 +75,15 @@ sub new {
 For every host listed in bb-hosts(Xymon 4.2) or hosts.cfg (Xymon 4.3),
 following operation is executed.
 
+    # if class name is given
     my $module = YourMonitor->new($host, $test);
     $module->run;
+
+    # if object is given
+    $module->run($host, $test);
+
+    # if CODEREF is given
+    &$code($host, $test);
 
 =cut
 
@@ -76,15 +91,30 @@ sub run {
     my $self = shift;
 
     for my $key (@{$self->{_keys}}) {
-	my $module_class = $self->{_dic}->{$key};
+	my $dest = $self->{_dic}->{$key};
+	my $code;
+	if (ref($dest)) {
+	    if (ref($dest) eq 'CODE') {
+		$code = $dest;
+	    }
+	    else {
+		$code = sub { $dest->run(@_); };
+	    }
+	}
+	else {
+	    $code = sub {
+		my ($host, $test) = @_;
+		my $obj = $dest->new($host, $test);
+		$obj->run;
+	    };
+	}
 
 	for my $entry (Xymon::Plugin::Server::Hosts->new->grep($key)) {
 	    eval {
 		my $host = $entry->[1];
 		my $test = $entry->[2];
 
-		my $module = $module_class->new($entry->[1], $entry->[2]);
-		$module->run;
+		&$code($host, $test);
 	    };
 	    if ($@) {
 		print STDERR $@;
