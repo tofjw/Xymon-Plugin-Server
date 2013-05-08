@@ -1,6 +1,7 @@
 use strict;
 
 use lib './blib/lib';
+use lib '../blib/lib';
 
 use Xymon::Plugin::Server::Dispatch;
 
@@ -12,13 +13,15 @@ use Xymon::Plugin::Server::Devmon;
 
 sub new {
     my $class = shift;
-    my ($host, $test) = @_;
+    my ($host, $test, $ip) = @_;
 
     my $self = {
 	host => $host,
 	test => $test,
+	ip => $ip,
     };
 
+    print "test for $host($ip).$test\n";
     bless $self, $class;
 }
 

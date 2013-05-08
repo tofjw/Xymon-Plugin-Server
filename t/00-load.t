@@ -1,13 +1,13 @@
 #!perl -T
-use 5.006;
 use strict;
 use warnings FATAL => 'all';
-use Test::More;
-
-plan tests => 1;
+use Test::More tests => 4;
 
 BEGIN {
-    use_ok( 'Xymon::Plugin::Server' ) || print "Bail out!\n";
+    use_ok( 'Xymon::Plugin::Server' );
+    use_ok( 'Xymon::Plugin::Server::Status' );
+    use_ok( 'Xymon::Plugin::Server::Devmon' );
+    use_ok( 'Xymon::Plugin::Server::Dispatch' );
 }
 
 diag( "Testing Xymon::Plugin::Server $Xymon::Plugin::Server::VERSION, Perl $], $^X" );

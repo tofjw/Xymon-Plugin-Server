@@ -103,8 +103,7 @@ sub run {
 	}
 	else {
 	    $code = sub {
-		my ($host, $test) = @_;
-		my $obj = $dest->new($host, $test);
+		my $obj = $dest->new(@_);
 		$obj->run;
 	    };
 	}
@@ -113,8 +112,9 @@ sub run {
 	    eval {
 		my $host = $entry->[1];
 		my $test = $entry->[2];
+		my $ip = $entry->[0];
 
-		&$code($host, $test);
+		&$code($host, $test, $ip);
 	    };
 	    if ($@) {
 		print STDERR $@;
