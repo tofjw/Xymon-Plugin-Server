@@ -11,11 +11,11 @@ Xymon::Plugin::Server - Xymon Server side plugin helper
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 DESCRIPTION
@@ -80,9 +80,9 @@ This is a class method. call like this:
 sub version {
     my $xyhome = __PACKAGE__->home;
 
-    return (4, 3) if (-f "$xyhome/etc/hosts.cfg");	# xymon 4.3
+    return [4, 3] if (-f "$xyhome/etc/hosts.cfg");	# xymon 4.3
 
-    return (4, 2);
+    return [4, 2];
 }
 
 =head2 display_hosts
@@ -131,6 +131,14 @@ You can find documentation for this module with the perldoc command.
 You can also look for information at:
 
 =over 4
+
+=item * About Xymon
+
+L<http://xymon.sourceforge.net/>
+
+=item * About RRDTool
+
+L<http://oss.oetiker.ch/rrdtool/>
 
 =item * RT: CPAN's request tracker (report bugs here)
 

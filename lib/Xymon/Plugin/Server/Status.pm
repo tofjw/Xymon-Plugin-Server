@@ -159,7 +159,7 @@ sub _create_graph_html {
 
     my $type = "4.3";
 
-    my ($major, $minor) = Xymon::Plugin::Server->version;
+    my ($major, $minor) = @{Xymon::Plugin::Server->version};
     $type = "4.2" if ($major == 4 && $minor == 2);
 
     my $host = $self->{_host};

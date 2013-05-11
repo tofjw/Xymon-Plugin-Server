@@ -5,6 +5,8 @@ package Xymon::Plugin::Server::Devmon;
 
 use strict;
 
+use Xymon::Plugin::Server;
+
 =head1 NAME
 
 Xymon::Plugin::Server::Devmon - Devmon data object
@@ -58,10 +60,17 @@ sub new {
 	$dsdefs{$key} = shift @datadef;
     }
 
+    my $format_method = "_format_4_3";
+    my @ver = @{Xymon::Plugin::Server->version};
+    if ($ver[0] == 4 && $ver[1] <= 2) {
+	$format_method = "_format_4_2";
+    }
+
     my $self = {
 	_dskeys => \@dskeys,
 	_dsdefs => \%dsdefs,
-	_data => {},
+	_format_method => $format_method,
+	_data => [],
     };
 
     bless $self, $class;
@@ -77,7 +86,7 @@ sub add_data {
     my $self = shift;
     my ($key, $values) = @_;
 
-    $self->{_data}->{$key} = $values;
+    push(@{$self->{_data}}, [$key, $values]);
 }
 
 =head2 format
@@ -88,6 +97,58 @@ Format data structure to report to Xymon.
 
 sub format {
     my $self = shift;
+    my @ver = @{Xymon::Plugin::Server->version};
+
+    my $meth = $self->{_format_method};
+    $self->$meth(@_);
+}
+
+sub _format_4_2 {
+    my $self = shift;
+    my @ret;
+
+    my $n = 20;
+    my @defs = ('GAUGE:600:0:U') x $n;
+
+    my $ndefs = scalar @{$self->{_dskeys}};
+    my %dsmap;
+
+    for (my $i=0; $i<$ndefs; $i++) {
+	my $key = $self->{_dskeys}->[$i];
+	$dsmap{$key} = sprintf("ds%d", $i);
+	$defs[$i] = $self->{_dsdefs}->{$key};
+    }
+
+    push(@ret, "<!--DEVMON RRD: ");
+    my $dsline = join(" ",
+		      map { join(':', 'DS', sprintf("ds%d", $_), $defs[$_]) }
+		      0..($n-1));
+
+    push(@ret, $dsline);
+
+    for my $kv (@{$self->{_data}}) {
+	my ($key, $values) = @$kv;
+	my @vals = ('U') x $n;
+
+	my $ndefs = scalar @{$self->{_dskeys}};
+	for (my $i=0; $i<$ndefs; $i++) {
+	    my $v = $values->{$self->{_dskeys}->[$i]};
+	    $vals[$i] = defined($v) ? $v : 'U';
+	}
+
+	my $line = $key . " " . join(':', @vals);
+
+
+	push(@ret, $line);
+    }
+
+    push(@ret, "-->\n");
+
+    return join("\n", @ret); 
+}
+
+sub _format_4_3 {
+    my $self = shift;
     my @ret;
 
     push(@ret, "<!--DEVMON RRD: ");
@@ -97,11 +158,12 @@ sub format {
 
     push(@ret, $dsline);
 
-    while (my ($key, $values) = each %{$self->{_data}}) {
+    for my $kv (@{$self->{_data}}) {
+	my ($key, $values) = @$kv;
 	
 	my $line = $key . " "
 	    . join(":",
-		   map { defined($values->{$_}) ? $values->{$_} : ''; }
+		   map { defined($values->{$_}) ? $values->{$_} : 'U'; }
 		   @{$self->{_dskeys}});
 
 	push(@ret, $line);
