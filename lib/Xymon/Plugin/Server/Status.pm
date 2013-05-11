@@ -182,7 +182,7 @@ sub _create_graph_html {
 _EOS
     }
     else {
-	my $cgi_url = $ENV{XYMONSERVERCGIURL} || "/xymon2-cgi";
+	my $cgi_url = $ENV{XYMONSERVERCGIURL} || "/xymon-cgi";
 
 	my $html = << "_EOS";
 <p>
