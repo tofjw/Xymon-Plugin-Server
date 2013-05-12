@@ -1,16 +1,7 @@
 Xymon-Plugin-Server
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
-
-A README file is required for CPAN modules since CPAN extracts the README
-file from a module distribution so that people browsing the archive
-can use it to get an idea of the module's uses. It is usually a good idea
-to provide version information here so that people can decide whether
-fixes for the module are worth downloading.
-
+Xymon-Plugin-Server contains some modules to write Xymon plugins
+run at server side.
 
 INSTALLATION
 
@@ -21,6 +12,47 @@ To install this module, run the following commands:
 	make test
 	make install
 
+
+HOW TO USE
+
+This section describes basic method to run plugin.
+
+Put following script named 'simple.pl' into $XYMONHOME/ext
+($XYMONHOME may be set like "/home/xymon/server")
+
+        use strict;
+
+        use Xymon::Plugin::Server::Dispatch;
+        use Xymon::Plugin::Server::Status qw(:colors);
+
+        sub simple_test {
+            my ($host, $test, $ip) = @_;
+
+            my $status = Xymon::Plugin::Server::Status->new($host, $test);
+            $status->add_status(GREEN, "simple test ok!");
+            $status->report;
+        }
+
+        my $dispatch = Xymon::Plugin::Server::Dispatch
+            ->new(simple => \&simple_test);
+
+        $dispatch->run;
+
+Add new test tag 'simple' to host entry in $XYMONHOME/etc/hosts.cfg like:
+
+        127.0.0.1   localhost.localdomain      # test1 ... testx simple
+
+To run simple.pl periodically, add entry to $XYMOMHOME/etc/tasks.cfg like:
+
+        [simple]
+            ENVFILE $XYMONHOME/etc/xymonserver.cfg
+            CMD perl $XYMONHOME/ext/simple.pl
+            LOGFILE $XYMONSERVERLOGS/simple.log
+            INTERVAL 5m
+
+After all, wait for a few minutes until script is invoked.
+
+
 SUPPORT AND DOCUMENTATION
 
 After installing, you can find documentation for this module with the
@@ -29,6 +61,12 @@ perldoc command.
     perldoc Xymon::Plugin::Server
 
 You can also look for information at:
+
+    Xymon
+        http://xymon.sourceforge.net/
+
+    RRDTool
+        http://oss.oetiker.ch/rrdtool/
 
     RT, CPAN's request tracker (report bugs here)
         http://rt.cpan.org/NoAuth/Bugs.html?Dist=Xymon-Plugin-Server
