@@ -31,7 +31,7 @@ Xymon::Plugin::Server::Dispatch - Xymon plugin dispatcher
     $dispatch3->run;
 
 
-=cut;
+=cut
 
 use Xymon::Plugin::Server::Hosts;
 
