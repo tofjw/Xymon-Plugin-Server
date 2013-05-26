@@ -78,7 +78,7 @@ sub run {
     $status->add_status(GREEN, "test1");
     $status->add_status(GREEN, "test2");
 
-    $status->add_message("Helloe world!\nThis is a test message\n");
+    $status->add_message("Hello world!\nThis is a test message\n");
 
     $status->add_devmon($devmon);
 

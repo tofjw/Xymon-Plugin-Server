@@ -15,7 +15,7 @@ unless (test_bb_runnable) {
     plan skip_all => 'dummy bb command is not runnable.'
 }
 else {
-    plan tests => 30;
+    plan tests => 45;
 }
 
 my $cwd = getcwd;
@@ -159,4 +159,51 @@ local $ENV{XYMONHOME} = "$cwd/t/testhome";
     ok($input =~ /^status host1.test2 green/);
     ok($input =~ /\n&green green test1/);
     ok($input =~ /^status .*test1.*\n<!--DEVMON.*\nDS:x:/s);
+}
+
+{
+
+    my $st = Xymon::Plugin::Server::Status->new("host1", "test2");
+    $st->add_status(GREEN, "green test1");
+    $st->add_message("<strong>diag &amp; message1</strong> &amp;");
+    $st->report;
+
+    my $input = get_bb_input;
+    ok($input =~ /&green/);
+    ok($input =~ /<strong>/);
+    ok($input =~ /<\/strong>/);
+    ok($input =~ /diag &amp; message1/);
+    ok($input =~ /<\/strong> &amp;/);
+}
+
+{
+
+    my $st = Xymon::Plugin::Server::Status->new("host1", "test2",
+	 { EscapeMessage => 1});
+    $st->add_status(GREEN, "green test1");
+    $st->add_message("<strong>diag &amp; message1</strong> &amp;");
+    $st->report;
+
+    my $input = get_bb_input;
+    ok($input =~ /&green/);
+    ok($input =~ /_strong_/);
+    ok($input =~ /_\/strong_/);
+    ok($input =~ /diag _amp; message1/);
+    ok($input =~ /_\/strong_ _amp;/);
+}
+
+{
+
+    my $st = Xymon::Plugin::Server::Status->new("host1", "test2",
+	 { EscapeMessage => 2});
+    $st->add_status(GREEN, "green test1");
+    $st->add_message("<strong>diag &amp; message1</strong> &amp;");
+    $st->report;
+
+    my $input = get_bb_input;
+    ok($input =~ /&green/);
+    ok($input =~ /&lt;strong&gt;/);
+    ok($input =~ /&lt;\/strong&gt;/);
+    ok($input =~ /diag &amp;amp; message1/);
+    ok($input =~ /&lt;\/strong&gt; &amp;amp;/);
 }

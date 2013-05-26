@@ -5,6 +5,8 @@ package Xymon::Plugin::Server::Status;
 
 use strict;
 
+use Carp;
+
 use Xymon::Plugin::Server;
 
 =head1 NAME
@@ -54,9 +56,34 @@ use constant {
 
 =head1 SUBROUTINES/METHODS
 
-=head2 new(hostname, testname)
+=head2 new(hostname, testname, attr)
 
 Create status object for hostname and testname.
+
+attr is optional hashref to change actions of object.
+Currently, following parameter is defined.
+
+=over
+
+=item EscapeMessage
+
+=over
+
+=item 0 (default) 
+
+Make no change to message.
+
+=item 1
+
+Some characters (<, >, &) are replaced to '_'.
+
+=item 2
+
+    '<', '>, '&' are replaced to '&lt;', '&gt;', '&amp' respectively.
+
+=back
+
+=back
 
 =cut
 
@@ -64,6 +91,7 @@ sub new {
     my $class = shift;
     my $host = shift;
     my $test = shift;
+    my $attr = shift;
 
     my $self = {
 	_host => $host,
@@ -72,23 +100,44 @@ sub new {
 	_message => '',
 	_devmon => undef,
 	_graph => [],
+	_attr => $attr || {}
     };
 
     bless $self, $class;
 }
 
+#
+# CLEAR, BLUE, GREEN, PURPLE, YELLOW, RED
+#
+my %order = (CLEAR	, 0,
+	     BLUE	, 1,
+	     GREEN	, 2,
+	     PURPLE	, 3,
+	     YELLOW	, 4,
+	     RED	, 5,
+	     );
+
 sub _set_color {
     my $self = shift;
     my $color = shift;
 
-    return if ($self->{_color} eq RED);
+    my $cur = $order{$self->{_color}};
+    my $new = $order{$color};
 
-    if ($self->{_color} eq YELLOW) {
-	$self->{_color} = $color if ($color eq RED);
-	return;
+    carp "Unknown color: $color" unless (defined($new));
+
+    # if purple is selected, this report will be eliminated by Xymon.
+    # so we change color.
+    if ($color eq PURPLE) {
+	$color = YELLOW;
+	$new = $order{$color};
+    }
+    
+    if ($cur < $new) {
+	$self->{_color} = $color;
     }
 
-    $self->{_color} = $color;
+    return $self->{_color};
 }
 
 =head2 add_status(color, msg)
@@ -103,8 +152,9 @@ sub add_status {
 
     if (defined($msg)) {
 	$msg .= "\n" if ($msg !~ /\n$/);
+	my $m = $self->_escape_string($msg);
 
-	$self->{_message} .= "&$color $msg";
+	$self->{_message} .= "&$color $m";
     }
 
     $self->_set_color($color);
@@ -122,7 +172,7 @@ sub add_message {
 
     $msg .= "\n" if ($msg !~ /\n$/);
 
-    $self->{_message} .= "$msg";
+    $self->{_message} .= $self->_escape_string($msg);
 }
 
 =head2 add_devmon(devmon)
@@ -193,6 +243,39 @@ _EOS
 _EOS
 
     }
+}
+
+sub _escape_replace {
+    my $s = shift;
+    $s =~ s/[<>&]/_/g;
+    return $s;
+}
+
+sub _escape_entity {
+    my $s = shift;
+
+    $s =~ s/&/&amp;/g;
+    $s =~ s/</&lt;/g;
+    $s =~ s/>/&gt;/g;
+    return $s;
+}
+
+sub _escape_string {
+    my $self = shift;
+    my $s = shift;
+
+    if ($self->{_attr}->{EscapeMessage}) {
+	my $n = $self->{_attr}->{EscapeMessage};
+	if ($n == 1) {
+	    return _escape_replace($s);
+	}
+	elsif ($n == 2) {
+	    return _escape_entity($s);
+	}
+
+    }
+
+    return $s;
 }
 
 sub _create_report_msg {

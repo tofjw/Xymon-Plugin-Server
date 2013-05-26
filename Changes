@@ -1,5 +1,12 @@
 Revision history for Xymon-Plugin-Server
 
+0.02    26/May/2013
+        Makefile.PL
+          perl5.6 is not suppoted.
+        Xymon::Plugin::Server::Status
+          optional hashref parameter is added to constructor.
+          ('EscapeMessage' is recognized.)
+
 0.02    11/May/2013
         Xymon::Plugin::Server
           "version" method now returns ARRAYREF correctly.

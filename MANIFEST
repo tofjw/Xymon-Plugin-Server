@@ -1,6 +1,7 @@
 .shipit
 Changes
 example/add-graph.cfg
+example/simple.pl
 example/test.pl
 lib/Xymon/Plugin/Server.pm
 lib/Xymon/Plugin/Server/Devmon.pm
