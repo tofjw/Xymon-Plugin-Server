@@ -69,17 +69,17 @@ Currently, following parameter is defined.
 
 =over
 
-=item 0 (default) 
+=item 0 - nochange (default) 
 
 Make no change to message.
 
-=item 1
+=item 1 - replace to '_' 
 
 Some characters (<, >, &) are replaced to '_'.
 
-=item 2
+=item 2 - html escape
 
-    '<', '>, '&' are replaced to '&lt;', '&gt;', '&amp' respectively.
+'<', '>, '&' are replaced to '&lt;', '&gt;', '&amp' respectively.
 
 =back
 
