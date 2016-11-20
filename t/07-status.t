@@ -21,14 +21,14 @@ else {
 my $cwd = getcwd;
 
 sub get_bb_cmdline {
-    open my $fh, "<", "t/tmp/cmdline.txt" or return "*** ERROR ***";
+    open my $fh, "<", "t/tmp/bb_cmdline.txt" or return "*** ERROR ***";
     local $/;
     my $txt = <$fh>;
     return $txt;
 }
 
 sub get_bb_input {
-    open my $fh, "<", "t/tmp/input.txt" or return "*** ERROR ***";
+    open my $fh, "<", "t/tmp/bb_input.txt" or return "*** ERROR ***";
     local $/;
     my $txt = <$fh>;
     return $txt;

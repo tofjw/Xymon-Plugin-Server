@@ -2,5 +2,5 @@
 
 test -d t/tmp || mkdir -p t/tmp
 cd t/tmp
-echo $* > cmdline.txt
-cat > input.txt
+echo $* > bb_cmdline.txt
+cat > bb_input.txt
